@@ -65,3 +65,6 @@ def main():
         pass
 
     print(f"\nArquivo salvo em:\n{output_file}")
+
+if __name__ == "__main__":
+     main()
