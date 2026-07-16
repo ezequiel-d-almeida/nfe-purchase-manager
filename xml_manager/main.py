@@ -26,9 +26,10 @@ def get_xml_files(folder: Path):
 
     return list(folder.rglob("*.xml"))
 
-def main():
+def main(xml_folder: Path | None = None):
 
-    xml_folder = select_xml_folder()
+    if xml_folder is None:
+        xml_folder = select_xml_folder()
 
     xml_files = get_xml_files(xml_folder)
 

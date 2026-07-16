@@ -1,4 +1,7 @@
 .venv
 .venv-1
+venv
 __pycache__
 .pyc
+.xlsx
+.xml

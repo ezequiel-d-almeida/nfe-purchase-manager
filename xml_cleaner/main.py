@@ -1,23 +1,32 @@
-from pathlib import Path
-
 from select_folder import selecionar_pasta
 from remove_duplicates import remover_duplicados
 from organize_by_date import organizar_por_data
 
+import sys
+from pathlib import Path
 
-OUTPUT_FOLDER = Path("output")
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "xml_manager"))
+
+from main import main as manager_main
+
+
+OUTPUT_FOLDER = Path(__file__).parent / "output"
 
 
 def main():
 
-    pasta = selecionar_pasta()
+    pasta_origem = selecionar_pasta()
 
     print("Removendo arquivos duplicados...")
 
-    OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
+    OUTPUT_FOLDER.mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
     xmls = remover_duplicados(
-        origem=pasta,
+        origem=pasta_origem,
         destino=OUTPUT_FOLDER
     )
 
@@ -25,12 +34,9 @@ def main():
 
     organizar_por_data(xmls)
 
-    print()
-
-    print("Processo finalizado.")
     print(f"XMLs processados: {len(xmls)}")
 
-    return OUTPUT_FOLDER
+    manager_main(OUTPUT_FOLDER)
 
 
 if __name__ == "__main__":
