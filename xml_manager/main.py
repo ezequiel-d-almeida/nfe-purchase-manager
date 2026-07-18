@@ -4,7 +4,7 @@ from tkinter import filedialog
 import os
 
 from extractor.xml_reader import XMLReader
-from output.excel_writer import ExcelWriter
+from output.sheets_writer import SheetsWriter
 from utils.report import Report
 
 def select_xml_folder():
@@ -45,11 +45,11 @@ def main(xml_folder: Path | None = None):
 
     purchases = reader.read_xmls(xml_files)
 
-    writer = ExcelWriter()
+    writer = SheetsWriter()
 
     output_file = xml_folder / "Compras.xlsx"
 
-    writer.write(purchases, output_file)
+    writer.write(purchases)
 
     Report.generate(purchases)
 
