@@ -1,6 +1,7 @@
 import os
 
 import gspread
+from gspread.utils import ValueInputOption
 
 from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
@@ -77,12 +78,12 @@ class SheetsWriter:
                 purchase.fornecedor,
                 purchase.cnpj,
                 purchase.numero_nf,
-                purchase.data_emissao,
+                purchase.data_emissao.isoformat() if purchase.data_emissao else "",
                 purchase.valor_total,
                 len(purchase.parcelas)
             ])
 
-        sheet.update(rows)
+        sheet.update(rows, value_input_option=ValueInputOption.user_entered)
 
     def _write_installment_sheet(self, purchases):
 
@@ -104,11 +105,11 @@ class SheetsWriter:
                     purchase.numero_nf,
                     purchase.fornecedor,
                     installment.numero,
-                    installment.vencimento,
+                    installment.vencimento.isoformat(),
                     installment.valor
                 ])
 
-        sheet.update(rows)
+        sheet.update(rows, value_input_option=ValueInputOption.user_entered)
 
     def _write_product_sheet(self, purchases):
 

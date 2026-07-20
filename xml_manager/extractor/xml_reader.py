@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from datetime import datetime
 
 from models.purchase import Purchase
 from models.purchase import Installment
@@ -69,7 +70,10 @@ class XMLReader:
         if not data:
             data = self._text(root, ".//nfe:ide/nfe:dEmi")
 
-        return data[:10] if data else ""
+        if not data:
+            return None
+
+        return datetime.strptime(data[:10], "%Y-%m-%d").date()
 
     def _read_installments(self, root):
 
@@ -78,15 +82,15 @@ class XMLReader:
         for dup in root.findall(".//nfe:dup", NAMESPACE):
 
             numero = self._text(dup, "nfe:nDup")
-            vencimento = self._text(dup, "nfe:dVenc")
+            vencimento_texto = self._text(dup, "nfe:dVenc")
             valor_texto = self._text(dup, "nfe:vDup")
 
-            if not numero or not vencimento or not valor_texto:
+            if not numero or not vencimento_texto or not valor_texto:
                 continue
 
             parcela = Installment(
                 numero=numero,
-                vencimento=vencimento,
+                vencimento=datetime.strptime(vencimento_texto[:10], "%Y-%m-%d").date(),
                 valor=float(valor_texto)
             )
 

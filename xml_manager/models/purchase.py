@@ -1,14 +1,14 @@
 from dataclasses import dataclass, field
+from datetime import date
 
 from models.product import Product
-
 
 @dataclass
 class Installment:
 
     numero: str
 
-    vencimento: str
+    vencimento: date
 
     valor: float
 
@@ -22,7 +22,7 @@ class Purchase:
 
     numero_nf: str
 
-    data_emissao: str
+    data_emissao: date | None
 
     valor_total: float
 
