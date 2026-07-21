@@ -1,320 +1,129 @@
-# 🚗 Gerenciador de Compras via NF-e
+# 📊 Gerenciador de Compras via NF-e
 
-> Um pipeline ETL desenvolvido em Python para automatizar o processamento de XMLs de Nota Fiscal Eletrônica (NF-e), transformando documentos fiscais em uma base de dados estruturada para análise e tomada de decisão.
+**Pipeline ETL em Python que transforma XMLs de Nota Fiscal Eletrônica em um dashboard de compras pronto para análise.**
 
-<p align="center">
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)
+![openpyxl](https://img.shields.io/badge/openpyxl-3.1-217346?style=flat&logo=microsoftexcel&logoColor=white)
+![Google Sheets API](https://img.shields.io/badge/Google_Sheets_API-gspread-34A853?style=flat&logo=googlesheets&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power_BI-Dashboard-F2C811?style=flat&logo=powerbi&logoColor=black)
+![Status](https://img.shields.io/badge/status-em%20evolução-yellow)
 
-![Python](https://img.shields.io/badge/Python-3.13-blue?style=for-the-badge&logo=python)
-![OpenPyXL](https://img.shields.io/badge/OpenPyXL-Excel-success?style=for-the-badge)
-![ETL](https://img.shields.io/badge/Pipeline-ETL-orange?style=for-the-badge)
-![Power BI](https://img.shields.io/badge/Power_BI-Analytics-yellow?style=for-the-badge)
+<!-- TODO: adicionar aqui um screenshot ou GIF do dashboard final no Power BI/Sheets -->
 
-</p>
+## 📌 Sobre o projeto
 
----
+Empresas que recebem notas fiscais eletrônicas (NF-e) em XML normalmente lidam com centenas de arquivos espalhados em pastas, sem estrutura nem consolidação — o que torna qualquer análise de compras, fornecedores ou parcelas um processo manual e propenso a erro.
 
-# 📖 Sobre o Projeto
+Este projeto automatiza essa etapa: lê os XMLs brutos, remove duplicidades, organiza os arquivos por competência (ano/mês) e extrai os dados fiscais relevantes (fornecedor, valor, parcelas, produtos) para uma planilha estruturada no Google Sheets, que alimenta um dashboard de compras no Power BI.
 
-Empresas que trabalham com dezenas ou centenas de Notas Fiscais Eletrônicas precisam lidar diariamente com atividades repetitivas:
+É o meu primeiro projeto de dados ponta a ponta — da ingestão de um formato de arquivo real e complicado (XML fiscal com namespace) até a entrega de um artefato analisável.
 
-- localizar XMLs;
-- remover arquivos duplicados;
-- organizar documentos;
-- extrair informações fiscais;
-- consolidar dados para análise.
+## ✨ Funcionalidades
 
-Todo esse processo normalmente é manual, sujeito a erros e consome horas de trabalho.
+- **Parsing de XML fiscal** com namespace da NF-e (`http://www.portalfiscal.inf.br/nfe`), extraindo emitente, CNPJ, número da nota, data de emissão, parcelas e itens
+- **Deduplicação idempotente**: cada nota é identificada pela sua chave de acesso (44 dígitos, extraída do atributo `Id`), então rodar o pipeline várias vezes sobre a mesma pasta nunca duplica registros
+- **Organização automática** dos XMLs processados em subpastas `AAAA/MM`, replicando a estrutura de competência fiscal
+- **Modelagem de domínio** com `dataclasses` (`Purchase`, `Installment`, `Product`), separando claramente o modelo de dados da lógica de extração
+- **Exportação em três dimensões** — compras, parcelas e produtos — para o Google Sheets via API, prontas para virar tabelas de um modelo Power BI
+- **Relatório de execução** no terminal (notas processadas, fornecedores únicos, produtos, parcelas, valor total)
+- **Tratamento defensivo de erros**: um XML malformado ou uma nota com campo faltante é logada e pulada, sem derrubar o processamento do lote inteiro
 
-Este projeto foi desenvolvido para resolver esse problema.
+## 🏗️ Arquitetura
 
-O sistema automatiza todo o fluxo de processamento das NF-es, convertendo centenas de XMLs em uma base estruturada pronta para geração de relatórios, dashboards e análises gerenciais.
+O pipeline é dividido em dois módulos desacoplados, cada um com uma responsabilidade clara:
 
----
-
-# 🎯 Objetivo
-
-Construir um pipeline ETL capaz de:
-
-- organizar automaticamente milhares de XMLs;
-- eliminar documentos duplicados;
-- extrair informações relevantes das notas fiscais;
-- transformar os dados em objetos estruturados;
-- gerar uma planilha Excel pronta para análise;
-- servir como fonte de dados para dashboards no Power BI.
-
----
-
-# ⚙️ Arquitetura do Pipeline
-
-```
-             XMLs de NF-e
-                    │
-                    ▼
-        XML Cleaner (Extract)
-        ─────────────────────
-        • Seleção da pasta
-        • Remoção de duplicados
-        • Organização por Ano/Mês
-                    │
-                    ▼
-        XML Manager (Transform)
-        ───────────────────────
-        • Leitura dos XMLs
-        • Parsing do XML
-        • Modelagem dos dados
-        • Objetos Purchase
-        • Objetos Product
-        • Objetos Installment
-                    │
-                    ▼
-        Excel Writer (Load)
-        ───────────────────
-        • Compras
-        • Produtos
-        • Parcelas
-                    │
-                    ▼
-           Dashboard Power BI
+```mermaid
+flowchart LR
+    A[Pasta de XMLs<br/>selecionada pelo usuário] --> B[xml_cleaner]
+    B -->|dedup por chave de acesso| C[Organização<br/>em pastas AAAA/MM]
+    C --> D[xml_manager]
+    D --> E[XMLReader<br/>parsing + modelagem]
+    E --> F[SheetsWriter<br/>Google Sheets API]
+    E --> G[Report<br/>resumo no terminal]
+    F --> H[(Dashboard<br/>Power BI)]
 ```
 
----
-
-# 🧩 Fluxo do Projeto
+## 🧱 Estrutura do projeto
 
 ```
-Selecionar pasta
-        │
-        ▼
-Ler XMLs
-        │
-        ▼
-Remover duplicados
-        │
-        ▼
-Organizar arquivos
-        │
-        ▼
-Extrair dados fiscais
-        │
-        ▼
-Modelar objetos Python
-        │
-        ▼
-Gerar Excel
-        │
-        ▼
-Power BI
-```
-
----
-
-# 📊 Informações extraídas
-
-Cada XML fornece automaticamente:
-
-### Compra
-
-- Fornecedor
-- CNPJ
-- Número da Nota Fiscal
-- Data de Emissão
-- Valor Total
-
-### Produtos
-
-- Código
-- Descrição
-- Quantidade
-- Unidade
-- Valor Unitário
-- Valor Total
-
-### Parcelas
-
-- Número da parcela
-- Data de vencimento
-- Valor
-
----
-
-# 📁 Estrutura do Projeto
-
-```
-Gerenciador-de-Compras-via-NFe/
-
+Gerenciador de compras via NF-e/
+├── xml_cleaner/                  # Etapa 1 — higienização dos arquivos brutos
+│   ├── select_folder.py          # Seleção da pasta de origem (GUI)
+│   ├── remove_duplicates.py      # Deduplicação por chave de acesso da NF-e
+│   ├── organize_by_date.py       # Organização em pastas AAAA/MM
+│   └── xml_utils.py              # Utilitários de leitura de XML
 │
-
-├── xml_cleaner/
-│   ├── main.py
-│   ├── organize_by_date.py
-│   ├── remove_duplicates.py
-│   ├── select_folder.py
-│   └── xml_utils.py
-│
-├── xml_manager/
-│   ├── extractor/
-│   ├── models/
-│   ├── output/
-│   ├── utils/
-│   └── main.py
-│
-├── docs/
-│
-├── requirements.txt
-│
-└── README.md
+└── xml_manager/                  # Etapa 2 — extração, modelagem e exportação
+    ├── extractor/
+    │   └── xml_reader.py         # Parsing do XML com namespace fiscal
+    ├── models/
+    │   ├── purchase.py           # Dataclasses: Purchase, Installment
+    │   └── product.py            # Dataclass: Product
+    ├── output/
+    │   ├── sheets_writer.py      # Escrita no Google Sheets (gspread)
+    │   └── excel_writer.py       # Escrita alternativa em .xlsx (openpyxl)
+    └── utils/
+        └── report.py             # Resumo estatístico da execução
 ```
 
----
+## 🛠️ Stack técnica
 
-# 🏗️ Modelagem
+| Categoria             | Tecnologias                                      |
+|------------------------|---------------------------------------------------|
+| Linguagem              | Python 3.12                                       |
+| Parsing de XML         | `xml.etree.ElementTree` (com namespaces fiscais)  |
+| Modelagem de dados     | `dataclasses`                                     |
+| Exportação             | `gspread`, `google-auth`, `openpyxl`              |
+| Configuração           | `python-dotenv`                                   |
+| Interface              | `tkinter` (seleção de pasta)                      |
+| Visualização           | Power BI / Google Sheets                          |
 
-O projeto utiliza uma modelagem orientada a objetos para representar os dados das notas fiscais.
+## ⚙️ Destaque técnico: deduplicação idempotente
 
-## Purchase
+Cada NF-e carrega, no atributo `Id` do XML, sua chave de acesso — um identificador único de 44 dígitos. Antes de copiar qualquer arquivo, `remove_duplicates.py` varre o que já foi organizado em execuções anteriores, monta um conjunto (`set`) dessas chaves, e só processa notas cuja chave ainda não existe. Isso garante que o pipeline seja **idempotente**: pode ser executado repetidamente sobre a mesma pasta de origem — ou até com pastas de meses diferentes se sobrepondo — sem nunca contar a mesma compra duas vezes.
 
-Representa uma Nota Fiscal.
-
-Possui:
-
-- fornecedor
-- CNPJ
-- número da NF
-- data
-- valor total
-- lista de produtos
-- lista de parcelas
-
----
-
-## Product
-
-Representa um item comprado.
-
-Cada produto contém:
-
-- código
-- descrição
-- quantidade
-- unidade
-- valor unitário
-- valor total
-
----
-
-## Installment
-
-Representa uma parcela da nota.
-
-Contém:
-
-- número
-- vencimento
-- valor
-
----
-
-# 📈 Resultado
-
-Ao final do processamento o sistema gera automaticamente um arquivo Excel contendo:
-
-- Compras
-- Produtos
-- Parcelas
-
-Essa estrutura pode ser utilizada diretamente em ferramentas de Business Intelligence como Power BI.
-
----
-
-# 🛠️ Tecnologias
-
-- Python
-- XML
-- ElementTree
-- Dataclasses
-- OpenPyXL
-- Tkinter
-
----
-
-# ▶️ Como executar
-
-Clone o projeto
+## 🚀 Como rodar localmente
 
 ```bash
-git clone https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git
+git clone https://github.com/ezequiel-d-almeida/gerenciador-compras-nfe.git
+cd "Gerenciador de compras via NF-e"
+
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+pip install -r xml_manager/requirements.txt
 ```
 
-Instale as dependências
+Configure um arquivo `.env` na raiz do projeto:
 
-```bash
-pip install -r requirements.txt
+```env
+GOOGLE_SHEET_ID=<id_da_sua_planilha>
+GOOGLE_CREDENTIALS=<caminho_para_credentials.json>
 ```
 
-Execute
+`credentials.json` é a chave de uma Service Account do Google Cloud com acesso à Sheets API e à Drive API — compartilhe a planilha de destino com o e-mail dessa conta como **Editor**. Tanto `.env` quanto `credentials.json` já estão no `.gitignore`, então nenhuma credencial é versionada.
+
+Depois, basta rodar o pipeline completo:
 
 ```bash
 python xml_cleaner/main.py
 ```
 
-Selecione a pasta contendo os XMLs.
+Uma janela pedirá a pasta com os XMLs; o restante — dedup, organização, extração e escrita na planilha — é automático.
 
-O sistema executará automaticamente todo o pipeline.
+## 📌 Roadmap
 
----
+- [ ] Tipar `data_emissao` e `vencimento` como `date` nativo, evitando ambiguidade de formato na leitura por ferramentas de BI
+- [ ] Padronizar o destino de escrita (hoje `ExcelWriter` e `SheetsWriter` coexistem; consolidar em um único fluxo configurável)
+- [ ] Testes automatizados (`pytest`) para o parsing de XML e a lógica de deduplicação
+- [ ] Containerização com Docker para facilitar a execução em qualquer máquina
+- [ ] Agendamento automático da execução (cron / Task Scheduler)
 
-# 💡 Aplicações
+## 👤 Autor
 
-Este projeto pode ser utilizado para:
+**Ezequiel** — estudante de Ciência de Dados (UFMS), em transição para uma vaga júnior em dados/desenvolvimento.
 
-- Gestão de compras
-- Controle financeiro
-- Consolidação de NF-es
-- Engenharia de Dados
-- ETL de documentos fiscais
-- Alimentação de Data Warehouse
-- Construção de Dashboards
+[GitHub](https://github.com/ezequiel-d-almeida) · [LinkedIn](https://www.linkedin.com/in/almeida-ezequiel)
 
 ---
 
-# 🚀 Próximas melhorias
-
-- Banco de dados PostgreSQL
-- Exportação para Parquet
-- Logs estruturados
-- Testes automatizados
-- Interface Web
-- Docker
-- Agendamento automático
-- Pipeline em Apache Airflow
-
----
-
-# 📚 Conceitos aplicados
-
-- ETL
-- Data Cleaning
-- Data Extraction
-- Data Modeling
-- Object-Oriented Programming
-- XML Parsing
-- File Processing
-- Data Transformation
-- Data Pipeline
-- Business Intelligence
-
----
-
-# 👨‍💻 Autor
-
-**Ezequiel Damasceno de Almeida**
-
-Graduando em Ciência de Dados.
-
-Desenvolvendo projetos focados em Engenharia de Dados, Automação de Processos e Business Intelligence.
-
-LinkedIn:
-> https://www.linkedin.com/in/almeida-ezequiel
-
-GitHub:
-> https://github.com/ezequiel-d-almeida
+Contribuições, sugestões e code review são bem-vindos — este projeto está em evolução ativa.
