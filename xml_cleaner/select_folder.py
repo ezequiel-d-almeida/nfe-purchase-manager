@@ -13,6 +13,6 @@ def selecionar_pasta() -> Path:
     )
 
     if not pasta:
-        raise Exception("Nenhuma pasta selecionada.")
+        raise RuntimeError("Nenhuma pasta selecionada.")
 
     return Path(pasta)
