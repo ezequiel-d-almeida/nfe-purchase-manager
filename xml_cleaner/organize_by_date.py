@@ -5,9 +5,11 @@ from xml_utils import abrir_xml
 from xml_utils import obter_ano_mes
 
 
-def organizar_por_data(xmls):
+def organizar_por_data(
+        xml_files: list[Path]
+) -> None:
 
-    for arquivo in xmls:
+    for arquivo in xml_files:
 
         root = abrir_xml(arquivo)
 
