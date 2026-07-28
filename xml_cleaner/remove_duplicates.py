@@ -1,9 +1,8 @@
 from pathlib import Path
 import shutil
 
-from xml_utils import abrir_xml
-from xml_utils import obter_chave
-
+from xml_cleaner.nfe_parser import abrir_xml
+from xml_cleaner.nfe_parser import obter_chave
 
 def remover_duplicados(
         origem: Path,

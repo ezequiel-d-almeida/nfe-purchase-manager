@@ -1,8 +1,8 @@
 from pathlib import Path
 import shutil
 
-from xml_utils import abrir_xml
-from xml_utils import obter_ano_mes
+from xml_cleaner.nfe_parser import abrir_xml
+from xml_cleaner.nfe_parser import obter_ano_mes
 
 
 def organizar_por_data(
