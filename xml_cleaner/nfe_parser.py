@@ -14,7 +14,7 @@ def abrir_xml(xml: Path) -> ET.Element:
     return tree.getroot()
 
 
-def obter_chave(root) -> str | None:
+def obter_chave(root: ET.Element) -> str | None:
 
     inf = root.find(".//nfe:infNFe", NFE_NAMESPACE)
 

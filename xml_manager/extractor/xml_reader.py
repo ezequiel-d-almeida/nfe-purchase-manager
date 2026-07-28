@@ -4,6 +4,7 @@ from datetime import datetime
 from models.purchase import Purchase
 from models.purchase import Installment
 from models.product import Product
+from pathlib import Path
 
 
 NAMESPACE = {
@@ -13,11 +14,14 @@ NAMESPACE = {
 
 class XMLReader:
 
-    def read_xmls(self, arquivos):
+    def read_xmls(
+        self, 
+        xml_files: list[Path]
+    ) -> list[Purchase]:
 
         compras = []
 
-        for arquivo in arquivos:
+        for arquivo in xml_files:
 
             try:
 
@@ -77,7 +81,7 @@ class XMLReader:
 
     def _read_installments(self, root):
 
-        parcelas = []
+        installments = []
 
         for dup in root.findall(".//nfe:dup", NAMESPACE):
 
@@ -94,9 +98,9 @@ class XMLReader:
                 valor=float(valor_texto)
             )
 
-            parcelas.append(parcela)
+            installments.append(parcela)
 
-        return parcelas
+        return installments
 
     def _read_products(self, root):
 
@@ -129,7 +133,11 @@ class XMLReader:
 
         return produtos
     
-    def _text(self, parent, path):
+    def _text(
+        self,
+        parent: ET.Element, 
+        path: str
+    ) -> str:
 
         element = parent.find(path, NAMESPACE)
 
