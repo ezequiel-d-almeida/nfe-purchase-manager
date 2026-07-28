@@ -1,11 +1,15 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from models.purchase import Purchase
-
+from pathlib import Path
 
 class ExcelWriter:
 
-    def write(self, purchases: list[Purchase], output_path: str):
+    def write(
+        self, 
+        purchases: list[Purchase], 
+        output_path: Path
+    ) -> None:
 
         workbook = Workbook()
 

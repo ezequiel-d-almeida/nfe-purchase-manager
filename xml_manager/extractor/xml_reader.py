@@ -11,7 +11,6 @@ NAMESPACE = {
     "nfe": "http://www.portalfiscal.inf.br/nfe"
 }
 
-
 class XMLReader:
 
     def read_xmls(
